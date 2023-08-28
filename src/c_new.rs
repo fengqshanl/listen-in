@@ -1,13 +1,13 @@
 use std::thread;
 use vosk::{Model, SpeakerModel, Recognizer};
 
-const MODEL_PATH: &str = "path/to/model";
-const SPK_MODEL_PATH: &str = "path/to/spk_model";
+const MODEL_PATH: &str = "../model";
+// const SPK_MODEL_PATH: &str = "path/to/spk_model";
 
 pub fn create() {
     // 加载语音识别模型
     let model = Model::new(MODEL_PATH).expect("无法加载语音识别模型");
-    let spk_model = SpeakerModel::new(SPK_MODEL_PATH).expect("无法加载说话者识别模型");
+    // let spk_model = SpeakerModel::new(SPK_MODEL_PATH).expect("无法加载说话者识别模型");
 
     let audio_config: f32 = 16000.0;  // 根据实际情况设置适当的采样率
     // 启动实时语音识别
