@@ -1,28 +1,89 @@
 use std::thread;
-use vosk::{Model, SpeakerModel, Recognizer};
+use std::path::PathBuf;
+use std::io; 
+use vosk::{ Model, Recognizer };  
+use portaudio as pa;
 
-const MODEL_PATH: &str = "../model";
-// const SPK_MODEL_PATH: &str = "path/to/spk_model";
+const INTERLEAVED: bool = true;
+const LATENCY: pa::Time = 0.0; // Ignored by PortAudio::is_*_format_supported.
+const STANDARD_SAMPLE_RATES: [f64; 13] = [
+    8000.0, 9600.0, 11025.0, 12000.0, 16000.0, 22050.0, 24000.0, 32000.0, 44100.0, 48000.0,
+    88200.0, 96000.0, 192000.0,
+];
 
 pub fn create() {
-    // 加载语音识别模型
-    let model = Model::new(MODEL_PATH).expect("无法加载语音识别模型");
-    // let spk_model = SpeakerModel::new(SPK_MODEL_PATH).expect("无法加载说话者识别模型");
+  let mut config_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+  config_path.push("model");
 
-    let audio_config: f32 = 16000.0;  // 根据实际情况设置适当的采样率
-    // 启动实时语音识别
-    let mut recognizer = Recognizer::new(&model, audio_config).unwrap();
+  // 加载模型  
+  let model = Model::new(config_path.to_str().unwrap()).unwrap();  
+  let mut voice = Recognizer::new(&model, 16000.0).unwrap();  
 
-    let microphone_thread = thread::spawn(move || {
-      loop {
-        let result = recognizer.partial_result();
-        println!("识别结果: {:?}", result);
-      }
-    });
+  let pa = pa::PortAudio::new().unwrap();
 
-    // 等待用户输入，按回车即可退出程序
-    let mut input = String::new();
-    std::io::stdin().read_line(&mut input).expect("读取用户输入失败");
+    let num_devices = pa.device_count().unwrap();
+    println!("Number of devices = {}", num_devices);
 
-    microphone_thread.join().expect("麦克风线程意外终止");
+    println!("Defualt input device: {:?}", pa.default_input_device());
+    println!("Defualt output device: {:?}", pa.default_output_device());
+
+    println!("All devices:");
+    for device in pa.devices().unwrap() {
+        let (idx, info) = device.unwrap();
+        println!("--------------------------------------- {:?}", idx);
+        println!("{:#?}", &info);
+
+        let in_channels = info.max_input_channels;
+        let input_params = pa::StreamParameters::<i16>::new(idx, in_channels, INTERLEAVED, LATENCY);
+        let out_channels = info.max_output_channels;
+        let output_params =
+            pa::StreamParameters::<i16>::new(idx, out_channels, INTERLEAVED, LATENCY);
+
+        println!(
+            "Supported standard sample rates for half-duplex 16-bit {} channel input:",
+            in_channels
+        );
+        for &sample_rate in &STANDARD_SAMPLE_RATES {
+            if pa
+                .is_input_format_supported(input_params, sample_rate)
+                .is_ok()
+            {
+                println!("\t{}hz", sample_rate);
+            }
+        }
+
+        println!(
+            "Supported standard sample rates for half-duplex 16-bit {} channel output:",
+            out_channels
+        );
+        for &sample_rate in &STANDARD_SAMPLE_RATES {
+            if pa
+                .is_output_format_supported(output_params, sample_rate)
+                .is_ok()
+            {
+                println!("\t{}hz", sample_rate);
+            }
+        }
+
+        println!("Supported standard sample rates for full-duplex 16-bit {} channel input, {} channel output:",
+                 in_channels, out_channels);
+        for &sample_rate in &STANDARD_SAMPLE_RATES {
+            if pa
+                .is_duplex_format_supported(input_params, output_params, sample_rate)
+                .is_ok()
+            {
+                println!("\t{}hz", sample_rate);
+            }
+        }
+    }
+
+  //   println!("请开始说话...");  
+  // loop {
+  //   stream.read(&mut buffer).unwrap();
+  //   voice.accept_waveform(buffer.as_slice());  
+  //   let result = voice.result();  
+  //   if let Some(text) = result {  
+  //       println!("翻译: {}", text);  
+  //   }  
+  // }
 }
