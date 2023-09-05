@@ -7,6 +7,9 @@ use weresocool_portaudio::{ PortAudio, DuplexStreamSettings, Stream  };
 use std::i16;
 use std::slice;
 
+const SAMPLE_RATE: f64 = 44_100.0;
+const CHANNELS: i32 = 2;
+const FRAMES: u32 = 50;
 const STANDARD_SAMPLE_RATES: [f64; 13] = [
     8000.0, 9600.0, 11025.0, 12000.0, 16000.0, 22050.0, 24000.0, 32000.0, 44100.0, 48000.0,
     88200.0, 96000.0, 192000.0,
@@ -23,21 +26,18 @@ pub fn create() {
   
   let settings = PortAudio::default_input_stream_settings::<i16>(
         &audio_self,                       
-        1,
-        44100.0,            
-        16,              
+        CHANNELS,
+        SAMPLE_RATE,            
+        FRAMES,              
     ).unwrap();
 
   // 打开音频输入流
   let mut stream = PortAudio::open_blocking_stream(&audio_self, settings).unwrap();
 
-  // 创建一个i16类型的缓冲区来接收音频数据
-  // let mut buffer = vec![0u32; 256];
-
   stream.start().unwrap();
 
   loop {
-    let buf = stream.read(16).unwrap();
+    let buf = stream.read(256).unwrap();
     voice.accept_waveform(buf);  
     let result = voice.result().single().unwrap(); 
     println!("text: {}", result.text); 
