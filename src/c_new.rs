@@ -7,9 +7,9 @@ use weresocool_portaudio::{ PortAudio, DuplexStreamSettings, Stream  };
 use std::i16;
 use std::slice;
 
-const SAMPLE_RATE: f64 = 44_100.0;
-const CHANNELS: i32 = 2;
-const FRAMES: u32 = 50;
+const SAMPLE_RATE: f64 = 11025.0;
+const CHANNELS: i32 = 1;
+const FRAMES: u32 = 3096;
 const STANDARD_SAMPLE_RATES: [f64; 13] = [
     8000.0, 9600.0, 11025.0, 12000.0, 16000.0, 22050.0, 24000.0, 32000.0, 44100.0, 48000.0,
     88200.0, 96000.0, 192000.0,
@@ -39,8 +39,10 @@ pub fn create() {
   loop {
     let buf = stream.read(256).unwrap();
     voice.accept_waveform(buf);  
-    let result = voice.result().single().unwrap(); 
-    println!("text: {}", result.text); 
+    let result = voice.result().single().unwrap();
+    if result.text.len() > 0 {
+      println!("text: {}", result.text); 
+    } 
   }
   
   // stream.close().unwrap();  
