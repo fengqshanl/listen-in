@@ -19,6 +19,7 @@ const STANDARD_SAMPLE_RATES: [f64; 13] = [
 pub fn create() {
   let mut config_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
   config_path.push("model");
+  println!("config_path: {:?}", config_path.to_str().unwrap());
   // 加载模型  
   let model = Model::new(config_path.to_str().unwrap()).unwrap();  
   let mut voice = Recognizer::new(&model, 16000.0).unwrap();  
