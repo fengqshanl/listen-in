@@ -18,3 +18,4 @@ env_logger = "0.10.0"
 objc = "0.2.7"
 pocketsphinx = "0.6.0"
 weresocool_portaudio = "1.0.47"
+wasm-bindgen = { version = "0.2.89", features = [] }

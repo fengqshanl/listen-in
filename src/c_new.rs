@@ -1,6 +1,7 @@
 use std::sync::{Arc, Mutex};
 use std::path::PathBuf;
-use std::io; 
+use std::io;
+// use crate::macro_log::console_log;
 use vosk::{ Model, Recognizer };  
 use std::collections::VecDeque;
 use weresocool_portaudio::{ PortAudio, DuplexStreamSettings, Stream  };
@@ -8,9 +9,9 @@ use std::i16;
 use std::slice;
 use std::time::SystemTime;
 
-const SAMPLE_RATE: f64 = 24000.0;
+const SAMPLE_RATE: f64 = 16000.0;
 const CHANNELS: i32 = 1;
-const FRAMES: u32 = 16000;
+const FRAMES: u32 = 1280;
 const STANDARD_SAMPLE_RATES: [f64; 13] = [
     8000.0, 9600.0, 11025.0, 12000.0, 16000.0, 22050.0, 24000.0, 32000.0, 44100.0, 48000.0,
     88200.0, 96000.0, 192000.0,
@@ -38,10 +39,11 @@ pub fn create() {
 
   stream.start().unwrap();
   loop {
-    let buf = stream.read(512).unwrap();
+    let buf = stream.read(16).unwrap();
     voice.accept_waveform(buf);  
     let result = voice.result().single().unwrap();
     if result.text.len() > 0 {
+        // console_log!("Hello {}!", "world");
       println!("text: {}", result.text); 
     } 
   }
